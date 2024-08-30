@@ -1,0 +1,74 @@
+Information Queries,
+
+a. SELECT Customer_Name, Customer_Category FROM Customer WHERE Customer_Category = 'Staff';
+
+
+b. SELECT O.Order_ID, O.Order_Date, OP.Product_ID, OP.Order_Quantity FROM Order O
+   JOIN Order_Product OP ON (O.Order_ID = OP.Order_ID)
+   WHERE OP.Product_ID = '301'
+   AND O.Order_Date >= DATE '2023-05-01'
+   AND O.Order_Date <= DATE '2023-05-28';
+
+
+c. SELECT C.Customer_ID, C.Customer_Name, O.Order_ID, O.Order_Date, OP.Product_ID, OP.Order_Quantity FROM CUSTOMER C
+   LEFT JOIN Orders O ON C.Customer_ID = O.Customer_ID
+   LEFT JOIN Order_Product OP ON O.Order_ID = OP.Order_ID;
+
+
+d. SELECT * FROM Product WHERE Product_Name LIKE '_a%' AND Stock_Quantity > 50;
+
+
+e. SELECT C.Customer_ID, C.Customer_Name, O.Order_Date FROM Customer C
+   JOIN Orders O ON (C.Customer_ID = O.Customer_ID)
+   WHERE O.Order_Date = (SELECT MAX(Order_Date) FROM Orders);
+
+
+Transaction Queries,
+
+a. SELECT TO_CHAR(O.Order_Date, 'YYYY-Mon') AS month,
+	SUM(C.Price_After_Discount) AS total_revenue
+   FROM Orders O
+   JOIN Customer C ON (O.Customer_ID = C.Customer_ID)
+   GROUP BY TO_CHAR(O.Order_Date, 'YYYY-Mon')
+   ORDER BY TO_CHAR(O.Order_Date, 'YYYY-MOn');
+
+
+b. SELECT OP.Order_ID, O.Order_Date, SUM(OP.Line_Total) AS Total_Order
+   FROM Order_Product OP
+   JOIN Orders O ON OP.Order_ID = O.Order_ID
+   GROUP BY OP.Order_ID, O.Order_Date
+   HAVING SUM(OP.Line_Total) >= (SELECT AVG(Line_Total) FROM Order_product);
+
+
+c. SELECT S.Supplier_ID, S.Supplier_Name, S.Supplier_Address
+   FROM Supplier S
+   JOIN Product P ON (S.Supplier_ID = P.Supplier_ID)
+   GROUP BY S.Supplier_ID, S.Supplier_Name, S.Supplier_Address
+   HAVING COUNT(P.Product_ID) > 3;
+
+
+d. SELECT Product_ID, product_Name, Total_Quantity
+   FROM
+	SELECT P.Product_ID, Product_Name, SUM(OP.Order_Quantity) AS Total_Quantity
+	FROM Product P
+	JOIN Order_Product OP ON (P.Product_ID = OP.Product_ID)
+	GROUP BY P.Product_ID, P.Product_Name
+	ORDER BY Total_Quantity DESC
+  )
+  WHERE ROWNUM <= 3;
+
+
+e. SELECT Customer_ID
+		Customer_Name,
+		Total_Spending
+   FROM (
+	SELECT C.Customer_ID,
+		C.Customer_Name,
+		SUM(OP.Line_Total) AS Total_Spending
+	FROM Customer C
+	JOIN Orders O ON (C.Customer_ID = O.Customer_ID)
+	WHERE TO_CHAR(O.Order_Date, 'Mon') = 'AUG'
+	GROUP BY C.Customer_ID, C.Customer_Name
+	ORDER BY Total_Spending DESC
+  )
+  WHERE ROWNUM <= 1;
